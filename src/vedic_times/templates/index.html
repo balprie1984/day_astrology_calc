@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vedic Daylight Times</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <p class="eyebrow">Daily Panchanga Utility</p>
+      <h1>Vedic Daylight Times</h1>
+      <p class="lede">Find Rahu Kalam, Gulika Kalam, Yamagandam, and Abhijit Muhurat from local sunrise and sunset.</p>
+    </header>
+
+    <section class="panel input-panel" aria-labelledby="form-title">
+      <h2 id="form-title">Choose a day and timezone</h2>
+      <form method="post">
+        <label>
+          <span>Date</span>
+          <select name="date" required>
+            {% for item in dates %}
+              <option value="{{ item.isoformat() }}" {% if item.isoformat() == selected_date %}selected{% endif %}>
+                {{ item.strftime('%A, %B %d, %Y') }}
+              </option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>Timezone</span>
+          <select name="timezone" required>
+            {% for zone in zones %}
+              <option value="{{ zone }}" {% if zone == selected_zone %}selected{% endif %}>{{ zone.replace('_', ' ') }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <button type="submit">Calculate times <span aria-hidden="true">→</span></button>
+      </form>
+    </section>
+
+    {% if error %}<div class="alert" role="alert">{{ error }}</div>{% endif %}
+
+    {% if result %}
+      <section class="results" aria-live="polite">
+        <div class="result-heading">
+          <div>
+            <p class="eyebrow">{{ result.date.strftime('%A') }}</p>
+            <h2>{{ result.date.strftime('%B %d, %Y') }}</h2>
+          </div>
+          <span class="zone-badge">{{ result.timezone }}</span>
+        </div>
+
+        <div class="sun-strip">
+          <div><span>Sunrise</span><strong>{{ result.sunrise.strftime('%I:%M %p') }}</strong></div>
+          <div class="sun-line"><span aria-hidden="true">☀</span></div>
+          <div><span>Sunset</span><strong>{{ result.sunset.strftime('%I:%M %p') }}</strong></div>
+        </div>
+
+        <div class="cards">
+          {% for period in result.periods %}
+            <article class="time-card card-{{ loop.index }}">
+              <span class="number">0{{ loop.index }}</span>
+              <h3>{{ period.name }}</h3>
+              <p>{{ period.start.strftime('%I:%M %p') }} <span>—</span> {{ period.end.strftime('%I:%M %p') }}</p>
+            </article>
+          {% endfor %}
+        </div>
+
+        {% if result.abhijit_observance_note %}<p class="note">{{ result.abhijit_observance_note }}</p>{% endif %}
+        <p class="location-note">Calculated at the IANA reference point {{ '%.4f'|format(result.latitude) }}°, {{ '%.4f'|format(result.longitude) }}° for this timezone.</p>
+      </section>
+    {% endif %}
+
+    <footer>Times are astronomical estimates. Local tradition and exact city coordinates may produce small differences.</footer>
+  </main>
+</body>
+</html>
+
